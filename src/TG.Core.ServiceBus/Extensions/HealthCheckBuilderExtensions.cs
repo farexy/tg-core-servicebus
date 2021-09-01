@@ -14,7 +14,7 @@ namespace TG.Core.ServiceBus.Extensions
         private const string SubscriptionHealthCheckPrefix = "subscription";
         private static readonly TimeSpan Timeout = TimeSpan.FromSeconds(10);
 
-        internal static IHealthChecksBuilder AddServiceBusQueueHealthCheck<TMessage>(this IHealthChecksBuilder builder)
+        public static IHealthChecksBuilder AddServiceBusQueueHealthCheck<TMessage>(this IHealthChecksBuilder builder)
         {
             string queue = typeof(TMessage).GetQueueEntityPath();
             string registrationName = BuildRegistrationName(QueueHealthCheckPrefix, queue);
@@ -22,7 +22,7 @@ namespace TG.Core.ServiceBus.Extensions
                 client => new AzureServiceBusQueueHealthCheck(client, queue));
         }
 
-        internal static IHealthChecksBuilder AddServiceBusTopicHealthCheck<TMessage>(this IHealthChecksBuilder builder)
+        public static IHealthChecksBuilder AddServiceBusTopicHealthCheck<TMessage>(this IHealthChecksBuilder builder)
         {
             string topic = typeof(TMessage).GetTopicEntityPath();
             string registrationName = BuildRegistrationName(TopicHealthCheckPrefix, topic);
@@ -30,7 +30,7 @@ namespace TG.Core.ServiceBus.Extensions
                 client => new AzureServiceBusTopicHealthCheck(client, topic));
         }
 
-        internal static IHealthChecksBuilder AddServiceBusSubscriptionHealthCheck<TMessage>(this IHealthChecksBuilder builder, string serviceName)
+        public static IHealthChecksBuilder AddServiceBusSubscriptionHealthCheck<TMessage>(this IHealthChecksBuilder builder, string serviceName)
         {
             string subscription = typeof(TMessage).GetSubscriptionEntityPath(serviceName);
             string registrationName = BuildRegistrationName(SubscriptionHealthCheckPrefix, subscription);
