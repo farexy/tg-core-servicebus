@@ -31,7 +31,7 @@ namespace TG.Core.ServiceBus
         {
             _receiverClient.RegisterMessageHandler(HandleMessage, new MessageHandlerOptions(HandleReceivedException)
             {
-                MaxConcurrentCalls = 1,
+                MaxConcurrentCalls = 10,
                 AutoComplete = false
             });
             return Task.CompletedTask;
@@ -51,7 +51,10 @@ namespace TG.Core.ServiceBus
                     throw new ApplicationException($"Handler for message of type {typeof(TMessage).Name} is not registered");
                 }
 
-                await handler.HandleMessage(body, cancellationToken);
+                if (body != null)
+                {
+                    await handler.HandleMessage(body, cancellationToken);
+                }
             }
 
             await _receiverClient.CompleteAsync(message.SystemProperties.LockToken);
@@ -61,10 +64,13 @@ namespace TG.Core.ServiceBus
         {
             var context = exceptionReceivedEventArgs.ExceptionReceivedContext;
 
-            _logger.LogError(
-                exceptionReceivedEventArgs.Exception,
-                "Message handler encountered an exception. Endpoint: {endpoint}, entity path: {entityPath}, action: {action}",
-                context.Endpoint, context.EntityPath, context.Action);
+            if (context.Action != ExceptionReceivedEventArgsAction.RenewLock)
+            {
+                _logger.LogError(
+                    exceptionReceivedEventArgs.Exception,
+                    "Message handler encountered an exception. Endpoint: {endpoint}, entity path: {entityPath}, action: {action}",
+                    context.Endpoint, context.EntityPath, context.Action);
+            }
             return Task.CompletedTask;
         }
 
