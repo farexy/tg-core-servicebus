@@ -6,7 +6,7 @@ using TG.Core.ServiceBus.HealthChecks;
 
 namespace TG.Core.ServiceBus.Extensions
 {
-    internal static class HealthChecksBuilderExtensions
+    public static class HealthChecksBuilderExtensions
     {
         private const string ServiceBusHealthCheckPrefix = "servicebus";
         private const string QueueHealthCheckPrefix = "queue";
