@@ -38,12 +38,12 @@ namespace TG.Core.ServiceBus.Builders
         /// Registers BackgroundService and all required _services for consuming messages, and the HealthCheck.<para></para>
         /// Use IMessageHandler&lt;TMessage&gt; for processing incoming messages in your service.
         /// </summary>
-        public ServiceBusConfigurationBuilder AddQueueConsumer<TMessage, THandler>()
+        public ServiceBusConfigurationBuilder AddQueueConsumer<TMessage, THandler>(int maxConcurrentCalls = 20)
             where THandler : class, IMessageHandler<TMessage>
         {
             _services.AddHostedService(provider =>
                 new ServiceBusConsumer<TMessage>(BuildQueueClient<TMessage>(provider), provider.GetRequiredService<IServiceScopeFactory>(),
-                    provider.GetRequiredService<ILogger<ServiceBusConsumer<TMessage>>>(), provider.GetRequiredService<IOptions<SbTracingOptions>>().Value));
+                    provider.GetRequiredService<ILogger<ServiceBusConsumer<TMessage>>>(), provider.GetRequiredService<IOptions<SbTracingOptions>>().Value, maxConcurrentCalls));
 
             _services.AddHealthChecks().AddServiceBusQueueHealthCheck<TMessage>();
 
@@ -67,12 +67,12 @@ namespace TG.Core.ServiceBus.Builders
         /// Registers BackgroundService and all required _services for consuming messages, and the HealthCheck.<para></para>
         /// Use IMessageHandler&lt;TMessage&gt; for processing incoming messages in your service.
         /// </summary>
-        public ServiceBusConfigurationBuilder AddSubscriptionConsumer<TMessage, THandler>()
+        public ServiceBusConfigurationBuilder AddSubscriptionConsumer<TMessage, THandler>(int maxConcurrentCalls = 20)
             where THandler : class, IMessageHandler<TMessage>
         {
             _services.AddHostedService(provider =>
                 new ServiceBusConsumer<TMessage>(BuildSubscriptionClient<TMessage>(provider, _serviceName), provider.GetRequiredService<IServiceScopeFactory>(),
-                    provider.GetRequiredService<ILogger<ServiceBusConsumer<TMessage>>>(), provider.GetRequiredService<IOptions<SbTracingOptions>>().Value));
+                    provider.GetRequiredService<ILogger<ServiceBusConsumer<TMessage>>>(), provider.GetRequiredService<IOptions<SbTracingOptions>>().Value, maxConcurrentCalls));
 
             _services.AddHealthChecks().AddServiceBusSubscriptionHealthCheck<TMessage>(_serviceName);
 
