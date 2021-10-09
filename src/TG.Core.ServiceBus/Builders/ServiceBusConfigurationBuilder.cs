@@ -1,7 +1,6 @@
 ﻿using System;
 using Microsoft.Azure.ServiceBus;
 using Microsoft.Azure.ServiceBus.Primitives;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -12,13 +11,11 @@ namespace TG.Core.ServiceBus.Builders
 {
     public class ServiceBusConfigurationBuilder
     {
-        private readonly string _serviceName;
         private readonly IServiceCollection _services;
 
-        public ServiceBusConfigurationBuilder(IServiceCollection services, string serviceName)
+        public ServiceBusConfigurationBuilder(IServiceCollection services)
         {
             _services = services;
-            _serviceName = serviceName;
         }
         
         private static readonly ManagedIdentityTokenProvider ManagedIdentityTokenProvider = new();
@@ -67,14 +64,14 @@ namespace TG.Core.ServiceBus.Builders
         /// Registers BackgroundService and all required _services for consuming messages, and the HealthCheck.<para></para>
         /// Use IMessageHandler&lt;TMessage&gt; for processing incoming messages in your service.
         /// </summary>
-        public ServiceBusConfigurationBuilder AddSubscriptionConsumer<TMessage, THandler>()
+        public ServiceBusConfigurationBuilder AddSubscriptionConsumer<TMessage, THandler>(string subscriberName)
             where THandler : class, IMessageHandler<TMessage>
         {
             _services.AddHostedService(provider =>
-                new ServiceBusConsumer<TMessage>(BuildSubscriptionClient<TMessage>(provider, _serviceName), provider.GetRequiredService<IServiceScopeFactory>(),
+                new ServiceBusConsumer<TMessage>(BuildSubscriptionClient<TMessage>(provider, subscriberName), provider.GetRequiredService<IServiceScopeFactory>(),
                     provider.GetRequiredService<ILogger<ServiceBusConsumer<TMessage>>>(), provider.GetRequiredService<IOptions<SbTracingOptions>>().Value));
 
-            _services.AddHealthChecks().AddServiceBusSubscriptionHealthCheck<TMessage>(_serviceName);
+            _services.AddHealthChecks().AddServiceBusSubscriptionHealthCheck<TMessage>(subscriberName);
 
             _services.AddScoped<IMessageHandler<TMessage>, THandler>();
             return this;
@@ -88,17 +85,6 @@ namespace TG.Core.ServiceBus.Builders
                 opt.SetTraceId = setTraceIdSetup;
             });
             return this;
-        }
-
-        public ServiceBusConfigurationBuilder Configure(Action<ServiceBusOptions> setup)
-        {
-            _services.Configure(setup);
-            return this;
-        }
-        
-        public ServiceBusConfigurationBuilder Configure(IConfiguration configuration)
-        {
-            return Configure(opt => opt.Endpoint = configuration.GetConnectionString("ServiceBus"));
         }
         
         private static IQueueClient BuildQueueClient<TMessage>(IServiceProvider provider) =>
