@@ -17,21 +17,23 @@ namespace TG.Core.ServiceBus
         private readonly IServiceScopeFactory _serviceProvider;
         private readonly ILogger<ServiceBusConsumer<TMessage>> _logger;
         private readonly SbTracingOptions _tracingOptions;
+        private readonly int _maxConcurrentCalls;
 
         public ServiceBusConsumer(IReceiverClient receiverClient, IServiceScopeFactory serviceScopeFactory,
-            ILogger<ServiceBusConsumer<TMessage>> logger, SbTracingOptions tracingOptions)
+            ILogger<ServiceBusConsumer<TMessage>> logger, SbTracingOptions tracingOptions, int maxConcurrentCalls)
         {
             _receiverClient = receiverClient;
             _serviceProvider = serviceScopeFactory;
             _logger = logger;
             _tracingOptions = tracingOptions;
+            _maxConcurrentCalls = maxConcurrentCalls;
         }
 
         protected override Task ExecuteAsync(CancellationToken stoppingToken)
         {
             _receiverClient.RegisterMessageHandler(HandleMessage, new MessageHandlerOptions(HandleReceivedException)
             {
-                MaxConcurrentCalls = 10,
+                MaxConcurrentCalls = _maxConcurrentCalls,
                 AutoComplete = false
             });
             return Task.CompletedTask;
