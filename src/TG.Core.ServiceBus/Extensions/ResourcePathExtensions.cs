@@ -6,6 +6,6 @@ namespace TG.Core.ServiceBus.Extensions
     {
         internal static string GetQueueEntityPath(this Type messageType) => messageType.Name + "-queue";
         internal static string GetTopicEntityPath(this Type messageType) => messageType.Name + "-topic";
-        internal static string GetSubscriptionEntityPath(this Type messageType, string serviceName) => $"{messageType}-{serviceName}-subscription";
+        internal static string GetSubscriptionEntityPath(this Type messageType, string serviceName) => $"{messageType.Name}-{serviceName}-subscription";
     }
 }
