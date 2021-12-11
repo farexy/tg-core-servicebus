@@ -17,5 +17,6 @@ namespace TG.Core.ServiceBus.Messages
     {
         Deleted = 0,
         Banned = 1,
+        Unbanned = 2,
     }
 }
